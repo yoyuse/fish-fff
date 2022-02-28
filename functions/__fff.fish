@@ -1,3 +1,4 @@
+# 2022-03-01
 # 2022-02-28
 # 2022-02-27
 # 2022-02-26
@@ -5,7 +6,8 @@
 # 2022-02-23
 
 function __fff_set_usage
-    set -gx __fff_usage "\
+    if test -z "$__fff_usage"
+        set -gx __fff_usage "\
 Keybind:
     ?         Show help
     Return    Print file path and exit / Enter directory
@@ -20,6 +22,7 @@ Keybind:
     C-x       Chdir and exit
     C-z       Jump around with z
 "
+    end
 end
 
 function __fff_set_ls
