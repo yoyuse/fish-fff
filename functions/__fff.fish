@@ -165,11 +165,11 @@ function __fff
         set k   (echo "$out" | sed -n 2p)
         set res (echo "$out" | sed -n '3,$p')
         # //path → /path
-        [ "$dir" = . ] && set target "$res" || set target (string replace -r '/$' '' "$dir")"/"$res # XXX # ${dir%/}/$res
+        [ "$dir" = . ] && set target $res || set target (string replace -r '/$' '' "$dir")"/"$res # XXX # ${dir%/}/$res
         switch "$k"
             case ctrl-j
                 # commandline -rt "$target"
-                commandline -rt (string escape $target)
+                commandline -rt (echo (string escape $target))
                 break
             case ctrl-m
                 if test -d "$target"
@@ -178,7 +178,7 @@ function __fff
                     set q
                 else
                     # commandline -rt "$target"
-                    commandline -rt (string escape $target)
+                    commandline -rt (echo (string escape $target))
                     break
                 end
             case ctrl-o
