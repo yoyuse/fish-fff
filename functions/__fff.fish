@@ -14,12 +14,11 @@ Keybind:
     C-o       Parent directory
     C-q       Exit
     C-r       Toggle recursive search
-    C-s       Toggle absolute path
-    C-t       Toggle preview
+    C-s       Toggle invisibles
+    C-t       Toggle absolute path
     C-v       Edit file
     C-x       Chdir and exit
-    C-z       Toggle invisibles
-    A-z       Jump around with z
+    C-z       Jump around with z
 "
 end
 
@@ -153,11 +152,9 @@ function __fff
             --bind "?:execute-silent(echo -n '$__fff_usage' | less >/dev/tty)+clear-screen" \
             --bind "ctrl-k:kill-line" \
             --bind "ctrl-l:execute-silent(test -d {} && $__fff_ls -l $ls_opts {} | less -R >/dev/tty || $__fff_pager {} </dev/tty >/dev/tty)+clear-screen" \
-            --bind "ctrl-t:toggle-preview" \
             --bind "ctrl-v:execute($__fff_editor {} </dev/tty >/dev/tty)" \
-            --expect=ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-x,ctrl-z \
+            --expect=ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
             --expect=alt-j \
-            --expect=alt-z \
             --multi \
             --preview "[ -d {} ] && $__fff_ls_F $ls_opts {} || $__fff_pager {}" \
             --prompt (__fff_shorten_path "$dir")" > " \
@@ -202,6 +199,17 @@ function __fff
                     set dir $dirname
                 end
             case ctrl-s
+                test -n "$all" && set all || set all 1
+                if test -n "$all"
+                    set ls_opts -a
+                    set fd_opts --hidden
+                    set sed_opts
+                else
+                    set ls_opts
+                    set fd_opts
+                    set sed_opts '-e /\/\./d'
+                end
+            case ctrl-t
                 # XXX: code copy
                 set -l cwd "$PWD/"
                 if test "$PWD" = (string replace -r '/$' '' "$dir")
@@ -217,20 +225,7 @@ function __fff
                 commandline -rt ""
                 break
             case ctrl-z
-                test -n "$all" && set all || set all 1
-                if test -n "$all"
-                    set ls_opts -a
-                    set fd_opts --hidden
-                    set sed_opts
-                else
-                    set ls_opts
-                    set fd_opts
-                    set sed_opts '-e /\/\./d'
-                end
-            case alt-j
-                test -n "$__fff_ttt" && set q (echo "$q" | "$__fff_ttt")
-            case alt-z
-                set target (z --list | fzf --nth 2.. --no-sort | sed 's/^[0-9,.]* *//')
+                set target (z --list | fzf --bind "ctrl-z:abort" --nth 2.. --no-sort | sed 's/^[0-9,.]* *//')
                 test -n "$target" && set dir $target
                 # XXX: code copy
                 set -l cwd "$PWD/"
@@ -241,7 +236,10 @@ function __fff
                 else
                     set dir (builtin cd "$dir"; pwd)
                 end
+                #
                 set q
+            case alt-j
+                test -n "$__fff_ttt" && set q (echo "$q" | "$__fff_ttt")
             case '*'
                 break
         end

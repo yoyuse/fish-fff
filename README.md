@@ -17,12 +17,11 @@ Command-line Fuzzy File Finder for Fish, inspired by [b4b4r07/cli-finder](https:
 | `C-o`    | Parent directory                           |
 | `C-q`    | Exit                                       |
 | `C-r`    | Toggle recursive search                    |
-| `C-s`    | Toggle absolute path                       |
-| `C-t`    | Toggle preview                             |
+| `C-s`    | Toggle invisibles                          |
+| `C-t`    | Toggle absolute path                       |
 | `C-v`    | Edit file                                  |
 | `C-x`    | Chdir and exit                             |
-| `C-z`    | Toggle invisibles                          |
-| `A-z`    | Jump around with `z`                       |
+| `C-z`    | Jump around with `z`                       |
 
 ## Requirements
 
