@@ -22,6 +22,7 @@ Command-line Fuzzy File Finder for Fish, inspired by [b4b4r07/cli-finder](https:
 | `C-v`    | Edit file                                  |
 | `C-x`    | Chdir and exit                             |
 | `C-z`    | Toggle invisibles                          |
+| `A-z`    | Jump around with `z`                       |
 
 ## Requirements
 
@@ -29,6 +30,7 @@ Command-line Fuzzy File Finder for Fish, inspired by [b4b4r07/cli-finder](https:
 - color `ls` (GNU ls or BSD ls)
 - [sharkdp/bat](https://github.com/sharkdp/bat) or `less`
 - [sharkdp/fd](https://github.com/sharkdp/fd) or `find`
+- [jethrokuan/z](https://github.com/jethrokuan/z)
 - (Optional) [yoyuse/cli-ttt](https://github.com/yoyuse/cli-ttt) or [yoyuse/go-ttt](https://github.com/yoyuse/go-ttt)
 
 ## Related

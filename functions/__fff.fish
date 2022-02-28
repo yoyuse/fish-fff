@@ -19,6 +19,7 @@ Keybind:
     C-v       Edit file
     C-x       Chdir and exit
     C-z       Toggle invisibles
+    A-z       Jump around with z
 "
 end
 
@@ -156,6 +157,7 @@ function __fff
             --bind "ctrl-v:execute($__fff_editor {} </dev/tty >/dev/tty)" \
             --expect=ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-x,ctrl-z \
             --expect=alt-j \
+            --expect=alt-z \
             --multi \
             --preview "[ -d {} ] && $__fff_ls_F $ls_opts {} || $__fff_pager {}" \
             --prompt (__fff_shorten_path "$dir")" > " \
@@ -200,6 +202,7 @@ function __fff
                     set dir $dirname
                 end
             case ctrl-s
+                # XXX: code copy
                 set -l cwd "$PWD/"
                 if test "$PWD" = (string replace -r '/$' '' "$dir")
                     set dir .
@@ -226,6 +229,19 @@ function __fff
                 end
             case alt-j
                 test -n "$__fff_ttt" && set q (echo "$q" | "$__fff_ttt")
+            case alt-z
+                set target (z --list | fzf --nth 2.. --no-sort | sed 's/^[0-9,.]* *//')
+                test -n "$target" && set dir $target
+                # XXX: code copy
+                set -l cwd "$PWD/"
+                if test "$PWD" = (string replace -r '/$' '' "$dir")
+                    set dir .
+                else if test "$cwd" = (string sub -s 1 -l (string length "$cwd") "$dir") # "$cwd" = "${dir:0:${#cwd}}"
+                    set dir (string replace "$cwd" '' "$dir") # set dir "${dir##$cwd}"
+                else
+                    set dir (builtin cd "$dir"; pwd)
+                end
+                set q
             case '*'
                 break
         end
