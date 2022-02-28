@@ -155,7 +155,7 @@ function __fff
             --bind "?:execute-silent(echo -n '$__fff_usage' | less >/dev/tty)+clear-screen" \
             --bind "ctrl-k:kill-line" \
             --bind "ctrl-l:execute-silent(test -d {} && $__fff_ls -l $ls_opts {} | less -R >/dev/tty || $__fff_pager {} </dev/tty >/dev/tty)+clear-screen" \
-            --bind "ctrl-v:execute($__fff_editor {} </dev/tty >/dev/tty)" \
+            --bind "ctrl-v:execute($__fff_editor {} </dev/tty >/dev/tty)+refresh-preview" \
             --expect=ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
             --expect=alt-j \
             --multi \
