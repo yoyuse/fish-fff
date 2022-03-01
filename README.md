@@ -1,6 +1,6 @@
 # fish-fff
 
-Command-line Fuzzy File Finder for Fish, inspired by [b4b4r07/cli-finder](https://github.com/b4b4r07/cli-finder).
+Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [b4b4r07/cli-finder](https://github.com/b4b4r07/cli-finder).
 
 ## Usage
 
