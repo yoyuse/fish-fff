@@ -150,7 +150,7 @@ function __fff
             # $__fff_find | sed $sed_opts -e 's:^\./::' -e '/^\.$/d' | __fff_dirslash
             set cmd $__fff_find # | sed $sed_opts -e 's:^\./::' -e '/^\.$/d' | __fff_dirslash
         end
-        $cmd | # sed $sed_opts -e 's:^\./::' -e '/^\.$/d' |
+        eval $cmd | # sed $sed_opts -e 's:^\./::' -e '/^\.$/d' |
         fzf --ansi \
             --bind "?:execute-silent(echo -n '$__fff_usage' | less >/dev/tty)+clear-screen" \
             --bind "ctrl-k:kill-line" \
