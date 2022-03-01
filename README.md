@@ -32,6 +32,14 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 - [jethrokuan/z](https://github.com/jethrokuan/z)
 - (Optional) [yoyuse/cli-ttt](https://github.com/yoyuse/cli-ttt) or [yoyuse/go-ttt](https://github.com/yoyuse/go-ttt)
 
+## Installation
+
+Install with [Fisher](https://github.com/jorgebucaran/fisher):
+
+``` shellsession
+fisher install yoyuse/fish-fff
+```
+
 ## Related
 
 ### cli-finder
@@ -39,3 +47,6 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 - [GitHub - b4b4r07/cli-finder: A command-line finder with fzf](https://github.com/b4b4r07/cli-finder)
 - [私の fzf 活用事例 | tellme.tokyo](https://tellme.tokyo/post/2015/11/08/013526/)
 
+## License
+
+MIT
