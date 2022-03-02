@@ -1,3 +1,4 @@
+# 2022-03-02
 # 2022-03-01
 # 2022-02-28
 # 2022-02-27
@@ -102,12 +103,6 @@ function __fff_shorten_path
     echo "$dir"
 end
 
-function __fff_dirslash
-    while read path
-        test -d "$path" && echo "$path/" || echo "$path"
-    end
-end
-
 function __fff
     if test (count $argv) -eq 1 -a "$argv[1]" = --source
         __fff_source
@@ -121,19 +116,18 @@ function __fff
     __fff_set_editor
     __fff_set_ttt
 
-    set CLICOLOR_FORCE 1
+    set -l CLICOLOR_FORCE 1
 
     set -l mode ls
     set -l ls_opts
     set -l fd_opts
     set -l sed_opts -e '/\/\./d' # exclude hidden files
 
-    set -l startdir (builtin cd .; pwd)
-    set -l dir (commandline -t)
-    set dir (string unescape $dir)
+    set -l startdir (pwd -L)
+    set -l dir (string unescape (commandline -t))
     test -z "$dir" && set dir .
     set dir (string replace -r '^~($|/)' "$HOME"'$1' $dir)
-    set dir (string replace -r '^(.*)/$' '$1' $dir)
+    set dir (string trim -r -c / $dir)
 
     set -l all
     set -l cmd
@@ -141,16 +135,13 @@ function __fff
     while set out (
         test -d "$dir" && builtin cd "$dir"
         if test "$mode" = ls
-            # $__fff_ls $ls_opts | __fff_dirslash
-            set cmd $__fff_ls $ls_opts # | __fff_dirslash
+            set cmd $__fff_ls $ls_opts
         else if test -n "$__fff_fd"
-            # $__fff_fd $fd_opts
             set cmd $__fff_fd $fd_opts
         else
-            # $__fff_find | sed $sed_opts -e 's:^\./::' -e '/^\.$/d' | __fff_dirslash
-            set cmd $__fff_find # | sed $sed_opts -e 's:^\./::' -e '/^\.$/d' | __fff_dirslash
+            set cmd $__fff_find
         end
-        eval $cmd | # sed $sed_opts -e 's:^\./::' -e '/^\.$/d' |
+        $cmd |
         fzf --ansi \
             --bind "?:execute-silent(echo -n '$__fff_usage' | less >/dev/tty)+clear-screen" \
             --bind "ctrl-k:kill-line" \
@@ -166,12 +157,10 @@ function __fff
         set q   (echo "$out" | sed -n 1p)
         set k   (echo "$out" | sed -n 2p)
         set res (echo "$out" | sed -n '3,$p')
-        # //path → /path
-        [ "$dir" = . ] && set target $res || set target (string replace -r '/$' '' "$dir")"/"$res # XXX # ${dir%/}/$res
+        [ "$dir" = . ] && set target $res || set target (string trim -r -c / "$dir")"/"$res
         switch "$k"
             case ctrl-j
-                # commandline -rt "$target"
-                commandline -rt (echo (string escape $target))
+                commandline -rt (string join ' ' (string escape $target))
                 break
             case ctrl-m
                 if test -d "$target"
@@ -179,13 +168,12 @@ function __fff
                     test "$dir" = "$startdir" && set dir .
                     set q
                 else
-                    # commandline -rt "$target"
-                    commandline -rt (echo (string escape $target))
+                    commandline -rt (string join ' ' (string escape $target))
                     break
                 end
             case ctrl-o
                 test "$dir" = . -o "$dir" = "" && set dir (pwd)
-                set -l parent (string replace -r '/[^/]+$' '' "$dir") # "${dir%/*}"
+                set -l parent (string replace -r '/[^/]+$' '' "$dir")
                 switch "$parent"
                     case ""
                         set dir /
@@ -215,10 +203,10 @@ function __fff
             case ctrl-t
                 # XXX: code copy
                 set -l cwd "$PWD/"
-                if test "$PWD" = (string replace -r '/$' '' "$dir")
+                if test "$PWD" = (string trim -r -c / "$dir")
                     set dir .
-                else if test "$cwd" = (string sub -s 1 -l (string length "$cwd") "$dir") # "$cwd" = "${dir:0:${#cwd}}"
-                    set dir (string replace "$cwd" '' "$dir") # set dir "${dir##$cwd}"
+                else if test "$cwd" = (string sub -s 1 -l (string length "$cwd") "$dir")
+                    set dir (string replace "$cwd" '' "$dir")
                 else
                     set dir (builtin cd "$dir"; pwd)
                 end
@@ -232,10 +220,10 @@ function __fff
                 test -n "$target" && set dir $target
                 # XXX: code copy
                 set -l cwd "$PWD/"
-                if test "$PWD" = (string replace -r '/$' '' "$dir")
+                if test "$PWD" = (string trim -r -c / "$dir")
                     set dir .
-                else if test "$cwd" = (string sub -s 1 -l (string length "$cwd") "$dir") # "$cwd" = "${dir:0:${#cwd}}"
-                    set dir (string replace "$cwd" '' "$dir") # set dir "${dir##$cwd}"
+                else if test "$cwd" = (string sub -s 1 -l (string length "$cwd") "$dir")
+                    set dir (string replace "$cwd" '' "$dir")
                 else
                     set dir (builtin cd "$dir"; pwd)
                 end
@@ -251,7 +239,7 @@ function __fff
 end
 
 function __fff_source
-    set -l me (status --current-filename)
+    set -l me (realpath (status --current-filename))
     echo source $me
     source $me
     commandline -f repaint
