@@ -1,14 +1,13 @@
+# 2022-03-02
 # 2022-02-28
 
 set -q FISH_FFF_DISABLE_KEYBINDINGS; or set -U FISH_FFF_DISABLE_KEYBINDINGS 0
 
 if test "$FISH_FFF_DISABLE_KEYBINDINGS" -ne 1
     bind \cs __fff
-    bind \es '__fff --source'
 
     if bind -M insert >/dev/null 2>/dev/null
         bind -M insert \cs __fff
-        bind -M insert \es '__fff --source'
     end
 end
 
