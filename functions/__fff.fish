@@ -1,11 +1,3 @@
-# 2022-03-02
-# 2022-03-01
-# 2022-02-28
-# 2022-02-27
-# 2022-02-26
-# 2022-02-24
-# 2022-02-23
-
 function __fff_set_usage
     if test -z "$__fff_usage"
         set -gx __fff_usage "\
@@ -96,13 +88,6 @@ function __fff_set_ttt
     end
 end
 
-function __fff_shorten_path
-    set -l dir $argv[1]
-    set dir (echo "$dir" | sed -E -e 's:^'"$HOME"'($|/):~\1:')
-    set dir (echo "$dir" | sed -E -e 's:(\.?[^/])[^/]*/:\1/:g')
-    echo "$dir"
-end
-
 function __fff
     __fff_set_usage
     __fff_set_ls
@@ -150,7 +135,7 @@ function __fff
             --expect=alt-j \
             --multi \
             --preview "[ -d {} ] && $__fff_ls_F $ls_opts {} || $__fff_pager {}" \
-            --prompt (__fff_shorten_path "$dir")" > " \
+            --prompt (string replace -a -r '(\.?[^/])[^/]*/' '$1/' (string replace -r '^'"$HOME"'($|/)' '~$1' $dir))" > " \
             --query="$q" --print-query \
             | string collect; builtin cd "$startdir"); test -n "$q" -o -n "$out"
         set q   (echo "$out" | sed -n 1p)
