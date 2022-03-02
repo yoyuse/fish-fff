@@ -26,76 +26,6 @@ Keybind:
     end
 end
 
-function __fff_set_ls
-    if test -z "$__fff_ls"
-        which gls >/dev/null 2>&1 && set __fff_ls gls || set __fff_ls ls
-        for opt in --color=always -G --color -F
-            if [ "$opt" = -F ]
-                set __fff_ls $__fff_ls
-                set __fff_ls_F $__fff_ls $opt
-                break
-            end
-            if $__fff_ls $opt / >/dev/null 2>&1
-                set __fff_ls $__fff_ls $opt
-                set __fff_ls_F $__fff_ls
-                break
-            end
-        end
-        set -gx __fff_ls $__fff_ls
-        set -gx __fff_ls_F $__fff_ls_F
-    end
-    if test -z "$__fff_ls_F"
-        set -gx __fff_ls_F $__fff_ls -F
-    end
-end
-
-function __fff_set_fd
-    if test -z "$__fff_fd" -a -z "$__fff_find"
-        if which fdfind >/dev/null 2>&1
-            set -gx __fff_fd fdfind --color=always --follow --no-ignore
-        else if which fd >/dev/null 2>&1
-            set -gx __fff_fd fd --color=always --follow --no-ignore
-        else
-            set -gx __fff_find find .
-        end
-    end
-end
-
-function __fff_set_pager
-    if test -z "$__fff_pager"
-        if which batcat >/dev/null 2>&1
-            set -gx __fff_pager batcat -p --color=always --paging=always
-        else if which bat >/dev/null 2>&1
-            set -gx __fff_pager bat -p --color=always --paging=always
-        else
-            set -gx __fff_pager less -R
-        end
-    end
-end
-
-function __fff_set_editor
-    if test -z "$__fff_editor"
-        if which nvim >/dev/null 2>&1
-            set -gx __fff_editor nvim
-        else if which vim >/dev/null 2>&1
-            set -gx __fff_editor vim
-        else
-            set -gx __fff_editor vi
-        end
-    end
-end
-
-function __fff_set_ttt
-    if test -z "$__fff_ttt"
-        for _ttt in go-ttt cli-ttt cli-ttt.rb
-            if which $_ttt >/dev/null 2>&1
-                set -gx __fff_ttt $_ttt
-                break
-            end
-        end
-    end
-end
-
 function __fff_shorten_path
     set -l dir $argv[1]
     set dir (echo "$dir" | sed -E -e 's:^'"$HOME"'($|/):~\1:')
@@ -103,24 +33,14 @@ function __fff_shorten_path
     echo "$dir"
 end
 
-function __fff
+function __fff_lite
     __fff_set_usage
-    __fff_set_ls
-    __fff_set_fd
-    __fff_set_pager
-    __fff_set_editor
-    __fff_set_ttt
-
-    if test -z "$__fff_fd" -o "$__fff_pager" = "less -R"
-        __fff_lite
-        return
-    end
 
     set -l CLICOLOR_FORCE 1
 
     set -l mode ls
     set -l ls_opts
-    set -l fd_opts
+    set -l sed_opts -e '/\/\./d' # exclude hidden files
 
     set -l startdir (pwd -L)
     set -l dir (string unescape (commandline -t))
@@ -134,22 +54,20 @@ function __fff
     while set out (
         test -d "$dir" && builtin cd "$dir"
         if test "$mode" = ls
-            set cmd $__fff_ls $ls_opts
-        else if test -n "$__fff_fd"
-            set cmd $__fff_fd $fd_opts
+            set cmd ls $ls_opts
         else
-            set cmd $__fff_find
+            set cmd find .
         end
-        $cmd |
+        $cmd | sed $sed_opts -e 's:^\./::' -e '/^\.$/d' | perl -ne 'chomp; $_ .= "/" if -d; print "$_\n";' |
         fzf --ansi \
             --bind "?:execute-silent(echo -n '$__fff_usage' | less >/dev/tty)+clear-screen" \
             --bind "ctrl-k:kill-line" \
-            --bind "ctrl-l:execute-silent(test -d {} && $__fff_ls -l $ls_opts {} | less -R >/dev/tty || $__fff_pager {} </dev/tty >/dev/tty)+clear-screen" \
-            --bind "ctrl-v:execute($__fff_editor {} </dev/tty >/dev/tty)+refresh-preview" \
+            --bind "ctrl-l:execute-silent(test -d {} && ls -l $ls_opts {} | less -R >/dev/tty || less -R {} </dev/tty >/dev/tty)+clear-screen" \
+            --bind "ctrl-v:execute(vim {} </dev/tty >/dev/tty)+refresh-preview" \
             --expect=ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
             --expect=alt-j \
             --multi \
-            --preview "[ -d {} ] && $__fff_ls_F $ls_opts {} || $__fff_pager {}" \
+            --preview "[ -d {} ] && ls -F $ls_opts {} || less -R {}" \
             --prompt (__fff_shorten_path "$dir")" > " \
             --query="$q" --print-query \
             | string collect; builtin cd "$startdir"); test -n "$q" -o -n "$out"
@@ -192,10 +110,10 @@ function __fff
                 test -n "$all" && set all || set all 1
                 if test -n "$all"
                     set ls_opts -a
-                    set fd_opts --hidden
+                    set sed_opts
                 else
                     set ls_opts
-                    set fd_opts
+                    set sed_opts '-e /\/\./d'
                 end
             case ctrl-t
                 # XXX: code copy
