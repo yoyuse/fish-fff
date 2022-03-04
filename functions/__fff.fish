@@ -198,7 +198,26 @@ function __fff
                 commandline -rt ""
                 break
             case ctrl-z
-                set target (z --list | fzf --bind "ctrl-z:abort" --nth 2.. --no-sort | sed 's/^[0-9,.]* *//')
+                #
+                # set target (z --list | fzf --bind "ctrl-z:abort" --nth 2.. --no-sort | sed 's/^[0-9,.]* *//')
+                #
+                set out (z --list | \
+                    fzf --nth 2.. --no-sort --expect=ctrl-m,ctrl-z \
+                    --print-query | \
+                    sed 's/^[0-9,.]* *//' | string collect)
+                set q   (echo "$out" | sed -n 1p)
+                set k   (echo "$out" | sed -n 2p)
+                set res (echo "$out" | sed -n '3,$p')
+                set target $res
+                switch "$k"
+                    case ctrl-z
+                        # AND search of locate
+                        # set target (locate -Ai (string split ' ' $q) | fzf --bind "ctrl-z:abort" --query="$q")
+                        # XXX: AND search is not available for macOS locate
+                        set target (locate -i (string split ' ' $q)[1] | fzf --bind "ctrl-z:abort" --query="$q")
+                end
+                test -f "$target" && set target (dirname $target)
+                #
                 test -n "$target" && set dir $target
                 # XXX: code copy
                 set -l cwd "$PWD/"
