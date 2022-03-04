@@ -22,6 +22,7 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 | `C-v`    | Edit file                                  |
 | `C-x`    | Chdir and exit                             |
 | `C-z`    | Jump around with `z`                       |
+| `M-l`    | Find path with `locate`                    |
 
 ## Requirements
 

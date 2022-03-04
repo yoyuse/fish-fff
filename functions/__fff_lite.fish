@@ -14,6 +14,7 @@ Keybind:
     C-v       Edit file
     C-x       Chdir and exit
     C-z       Jump around with z
+    M-l       Find path with locate
 "
     end
 end
@@ -40,6 +41,8 @@ function __fff_lite
         test -d "$dir" && builtin cd "$dir"
         if test "$mode" = ls
             set cmd ls $ls_opts
+        else if test "$mode" = locate
+            set cmd locate -i (string split ' ' $q)[1]
         else
             set cmd find .
         end
@@ -50,7 +53,7 @@ function __fff_lite
             --bind "ctrl-l:execute-silent(test -d {} && ls -l $ls_opts {} | less -R >/dev/tty || less -R {} </dev/tty >/dev/tty)+clear-screen" \
             --bind "ctrl-v:execute(vim {} </dev/tty >/dev/tty)+refresh-preview" \
             --expect=ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
-            --expect=alt-j \
+            --expect=alt-j,alt-l \
             --multi \
             --preview "[ -d {} ] && ls -F $ls_opts {} || less -R {}" \
             --prompt (string replace -a -r '(\.?[^/])[^/]*/' '$1/' (string replace -r '^'"$HOME"'($|/)' '~$1' $dir))" > " \
@@ -60,11 +63,13 @@ function __fff_lite
         set k   (echo "$out" | sed -n 2p)
         set res (echo "$out" | sed -n '3,$p')
         [ "$dir" = . ] && set target $res || set target (string trim -r -c / "$dir")"/"$res
+        test "$mode" = locate && set target $res
         switch "$k"
             case ctrl-j
                 commandline -rt (string join ' ' (string escape $target))
                 break
             case ctrl-m
+                test "$mode" = locate && set mode ls
                 if test -d "$target"
                     set dir "$target"
                     test "$dir" = "$startdir" && set dir .
@@ -74,6 +79,7 @@ function __fff_lite
                     break
                 end
             case ctrl-o
+                test "$mode" = locate && set mode ls
                 test "$dir" = . -o "$dir" = "" && set dir (pwd)
                 set -l parent (string replace -r '/[^/]+$' '' "$dir")
                 switch "$parent"
@@ -87,11 +93,14 @@ function __fff_lite
                 set q
             case ctrl-r
                 test "$mode" = ls && set mode fd || set mode ls
+                # XXX: code copy
                 set -l dirname (dirname "$target")
                 if test -d "$dirname"
                     set dir $dirname
                 end
+                #
             case ctrl-s
+                test "$mode" = locate && set mode ls
                 test -n "$all" && set all || set all 1
                 if test -n "$all"
                     set ls_opts -a
@@ -101,6 +110,7 @@ function __fff_lite
                     set sed_opts '-e /\/\./d'
                 end
             case ctrl-t
+                test "$mode" = locate && set mode ls
                 # XXX: code copy
                 set -l cwd "$PWD/"
                 if test "$PWD" = (string trim -r -c / "$dir")
@@ -116,11 +126,13 @@ function __fff_lite
                 commandline -rt ""
                 break
             case ctrl-z
+                test "$mode" = locate && set mode ls
                 #
                 # set target (z --list | fzf --bind "ctrl-z:abort" --nth 2.. --no-sort | sed 's/^[0-9,.]* *//')
                 #
                 set out (z --list | \
-                    fzf --nth 2.. --no-sort --expect=ctrl-m,ctrl-z \
+                    fzf --nth 2.. --no-sort \
+                    --bind "ctrl-z:abort" --expect=alt-l \
                     --print-query | \
                     sed 's/^[0-9,.]* *//' | string collect)
                 set q   (echo "$out" | sed -n 1p)
@@ -128,7 +140,7 @@ function __fff_lite
                 set res (echo "$out" | sed -n '3,$p')
                 set target $res
                 switch "$k"
-                    case ctrl-z
+                    case alt-l
                         # AND search of locate
                         # set target (locate -Ai (string split ' ' $q) | fzf --bind "ctrl-z:abort" --query="$q")
                         # XXX: AND search is not available for macOS locate
@@ -150,6 +162,14 @@ function __fff_lite
                 set q
             case alt-j
                 test -n "$__fff_ttt" && set q (echo "$q" | "$__fff_ttt")
+            case alt-l
+                test "$mode" = locate && set mode ls || set mode locate
+                # XXX: code copy
+                set -l dirname (dirname "$target")
+                if test -d "$dirname"
+                    set dir $dirname
+                end
+                #
             case '*'
                 break
         end
