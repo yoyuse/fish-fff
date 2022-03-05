@@ -4,6 +4,7 @@ function __fff_set_usage
 Keybind:
     ?         Show help
     Return    Print file path and exit / Enter directory
+    C-g       Exit with CWD
     C-j       Print path and exit
     C-l       View file
     C-o       Parent directory
@@ -12,9 +13,8 @@ Keybind:
     C-s       Toggle invisibles
     C-t       Toggle absolute path
     C-v       Edit file
-    C-x       Chdir and exit
+    C-x       Find path with locate
     C-z       Jump around with z
-    M-l       Find path with locate
     M-t       Toggle preview
 "
     end
@@ -152,9 +152,8 @@ function __fff
             --bind "ctrl-l:execute-silent(test -d {} && $__fff_ls -l $ls_opts {} | less -R >/dev/tty || $__fff_pager {} </dev/tty >/dev/tty)+clear-screen" \
             --bind "ctrl-v:execute($__fff_editor {} </dev/tty >/dev/tty)+refresh-preview" \
             --bind "alt-t:toggle-preview" \
-            # --expect=ctrl-g,ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
-            --expect=ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
-            --expect=alt-j,alt-l \
+            --expect=ctrl-g,ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
+            --expect=alt-j \
             $fzf_opts \
             --preview "[ -d {} ] && $__fff_ls_F $ls_opts {} || $__fff_pager {}" \
             --prompt $prompt \
@@ -166,9 +165,6 @@ function __fff
         [ "$dir" = . ] && set target $res || set target (string trim -r -c / "$dir")"/"$res
         test "$src" = locate -o "$src" = z && set target $res
         switch "$k"
-            # case ctrl-g
-            #     set src
-            #     continue        # XXX
             case ctrl-j
                 commandline -rt (string join ' ' (string escape $target))
                 break
@@ -183,6 +179,12 @@ function __fff
                     break
                 end
             case ctrl-o
+                if test "$src" = locate -o "$src" = z
+                    set src
+                    set dir (dirname $target)
+                    set q
+                    continue
+                end
                 set src
                 test "$dir" = . -o "$dir" = "" && set dir (pwd)
                 set -l parent (string replace -r '/[^/]+$' '' "$dir")
@@ -225,7 +227,14 @@ function __fff
                 else
                     set dir (builtin cd "$dir"; pwd)
                 end
-            case ctrl-x
+            case ctrl-g
+                if test "$src" = locate -o "$src" = z
+                    set src
+                    set dir $target
+                    test -d "$dir" || set dir (dirname $target)
+                    set q
+                    continue
+                end
                 echo "cd $dir"
                 cd "$dir"
                 commandline -rt ""
@@ -237,7 +246,7 @@ function __fff
                 # set q
             case alt-j
                 test -n "$__fff_ttt" && set q (echo "$q" | "$__fff_ttt")
-            case alt-l
+            case ctrl-x
                 # set src locate
                 test "$src" = locate && set src || set src locate
                 continue

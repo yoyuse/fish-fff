@@ -12,6 +12,7 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 |----------|--------------------------------------------|
 | `?`      | Show help                                  |
 | `Return` | Print file path and exit / Enter directory |
+| `C-g`    | Exit with CWD                              |
 | `C-j`    | Print path and exit                        |
 | `C-l`    | View file                                  |
 | `C-o`    | Parent directory                           |
@@ -20,9 +21,8 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 | `C-s`    | Toggle invisibles                          |
 | `C-t`    | Toggle absolute path                       |
 | `C-v`    | Edit file                                  |
-| `C-x`    | Chdir and exit                             |
+| `C-x`    | Find path with `locate`                    |
 | `C-z`    | Jump around with `z`                       |
-| `M-l`    | Find path with `locate`                    |
 | `M-t`    | Toggle preview                             |
 
 ## Requirements
