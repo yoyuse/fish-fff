@@ -98,9 +98,11 @@ function __fff
     __fff_set_editor
     __fff_set_ttt
 
-    if test -z "$__fff_fd" -o "$__fff_pager" = "less -R"
-        __fff_lite
-        return
+    if test -z "$__fff_fd" # -o "$__fff_pager" = "less -R"
+        # __fff_lite
+        # return
+        echo "fd: not found" >/dev/tty
+        exit 1
     end
 
     set -l CLICOLOR_FORCE 1
