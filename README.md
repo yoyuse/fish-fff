@@ -23,6 +23,7 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 | `C-x`    | Chdir and exit                             |
 | `C-z`    | Jump around with `z`                       |
 | `M-l`    | Find path with `locate`                    |
+| `M-t`    | Toggle preview                             |
 
 ## Requirements
 
@@ -30,6 +31,7 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 - color `ls` (GNU ls or BSD ls)
 - [sharkdp/bat](https://github.com/sharkdp/bat) or `less`
 - [sharkdp/fd](https://github.com/sharkdp/fd) or `find`
+- `locate`
 - [jethrokuan/z](https://github.com/jethrokuan/z)
 - (Optional) [yoyuse/cli-ttt](https://github.com/yoyuse/cli-ttt) or [yoyuse/go-ttt](https://github.com/yoyuse/go-ttt)
 

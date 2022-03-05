@@ -15,6 +15,7 @@ Keybind:
     C-x       Chdir and exit
     C-z       Jump around with z
     M-l       Find path with locate
+    M-t       Toggle preview
 "
     end
 end
@@ -104,6 +105,7 @@ function __fff
 
     set -l CLICOLOR_FORCE 1
 
+    set -l src
     set -l mode ls
     set -l ls_opts
     set -l fd_opts
@@ -116,42 +118,60 @@ function __fff
 
     set -l all
     set -l cmd
+    set -l filter
+    set -l prompt
+    set -l fzf_opts
 
     while set out (
         test -d "$dir" && builtin cd "$dir"
         if test "$mode" = ls
             set cmd $__fff_ls $ls_opts
-        else if test "$mode" = locate
-            set cmd locate -i (string split ' ' $q)[1]
         else if test -n "$__fff_fd"
             set cmd $__fff_fd $fd_opts
         else
             set cmd $__fff_find
         end
-        $cmd |
+        set filter cat
+        set prompt (string replace -a -r '(\.?[^/])[^/]*/' '$1/' (string replace -r '^'"$HOME"'($|/)' '~$1' $dir))" > "
+        set fzf_opts --multi
+        if test "$src" = locate
+            set cmd locate -i (string split ' ' $q)[1]
+            set prompt "LOCATE > "
+        else if test "$src" = z
+            set cmd z --list
+            set filter sed 's/^[0-9,.]* *//'
+            set prompt "Z > "
+            set fzf_opts --no-sort
+        end
+        $cmd | $filter |
         fzf --ansi \
             --bind "?:execute-silent(echo -n '$__fff_usage' | less >/dev/tty)+clear-screen" \
             --bind "ctrl-k:kill-line" \
             --bind "ctrl-l:execute-silent(test -d {} && $__fff_ls -l $ls_opts {} | less -R >/dev/tty || $__fff_pager {} </dev/tty >/dev/tty)+clear-screen" \
             --bind "ctrl-v:execute($__fff_editor {} </dev/tty >/dev/tty)+refresh-preview" \
+            --bind "alt-t:toggle-preview" \
+            # --expect=ctrl-g,ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
             --expect=ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
             --expect=alt-j,alt-l \
-            --multi \
+            $fzf_opts \
             --preview "[ -d {} ] && $__fff_ls_F $ls_opts {} || $__fff_pager {}" \
-            --prompt (string replace -a -r '(\.?[^/])[^/]*/' '$1/' (string replace -r '^'"$HOME"'($|/)' '~$1' $dir))" > " \
+            --prompt $prompt \
             --query="$q" --print-query \
             | string collect; builtin cd "$startdir"); test -n "$q" -o -n "$out"
         set q   (echo "$out" | sed -n 1p)
         set k   (echo "$out" | sed -n 2p)
         set res (echo "$out" | sed -n '3,$p')
         [ "$dir" = . ] && set target $res || set target (string trim -r -c / "$dir")"/"$res
-        test "$mode" = locate && set target $res
+        test "$src" = locate -o "$src" = z && set target $res
         switch "$k"
+            # case ctrl-g
+            #     set src
+            #     continue        # XXX
             case ctrl-j
                 commandline -rt (string join ' ' (string escape $target))
                 break
             case ctrl-m
-                test "$mode" = locate && set mode ls
+                set src
                 if test -d "$target"
                     set dir "$target"
                     test "$dir" = "$startdir" && set dir .
@@ -161,7 +181,7 @@ function __fff
                     break
                 end
             case ctrl-o
-                test "$mode" = locate && set mode ls
+                set src
                 test "$dir" = . -o "$dir" = "" && set dir (pwd)
                 set -l parent (string replace -r '/[^/]+$' '' "$dir")
                 switch "$parent"
@@ -174,6 +194,7 @@ function __fff
                 end
                 set q
             case ctrl-r
+                set src
                 test "$mode" = ls && set mode fd || set mode ls
                 # XXX: code copy
                 set -l dirname (dirname "$target")
@@ -182,7 +203,7 @@ function __fff
                 end
                 #
             case ctrl-s
-                test "$mode" = locate && set mode ls
+                set src
                 test -n "$all" && set all || set all 1
                 if test -n "$all"
                     set ls_opts -a
@@ -192,7 +213,7 @@ function __fff
                     set fd_opts
                 end
             case ctrl-t
-                test "$mode" = locate && set mode ls
+                set src
                 # XXX: code copy
                 set -l cwd "$PWD/"
                 if test "$PWD" = (string trim -r -c / "$dir")
@@ -208,49 +229,21 @@ function __fff
                 commandline -rt ""
                 break
             case ctrl-z
-                test "$mode" = locate && set mode ls
-                #
-                # set target (z --list | fzf --bind "ctrl-z:abort" --nth 2.. --no-sort | sed 's/^[0-9,.]* *//')
-                #
-                set out (z --list | \
-                    fzf --nth 2.. --no-sort \
-                    --bind "ctrl-z:abort" --expect=alt-l \
-                    --print-query | \
-                    sed 's/^[0-9,.]* *//' | string collect)
-                set q   (echo "$out" | sed -n 1p)
-                set k   (echo "$out" | sed -n 2p)
-                set res (echo "$out" | sed -n '3,$p')
-                set target $res
-                switch "$k"
-                    case alt-l
-                        # AND search of locate
-                        # set target (locate -Ai (string split ' ' $q) | fzf --bind "ctrl-z:abort" --query="$q")
-                        # XXX: AND search is not available for macOS locate
-                        set target (locate -i (string split ' ' $q)[1] | fzf --bind "ctrl-z:abort" --query="$q")
-                end
-                test -f "$target" && set target (dirname $target)
-                #
-                test -n "$target" && set dir $target
-                # XXX: code copy
-                set -l cwd "$PWD/"
-                if test "$PWD" = (string trim -r -c / "$dir")
-                    set dir .
-                else if test "$cwd" = (string sub -s 1 -l (string length "$cwd") "$dir")
-                    set dir (string replace "$cwd" '' "$dir")
-                else
-                    set dir (builtin cd "$dir"; pwd)
-                end
-                #
-                set q
+                # set src z
+                test "$src" = z && set src || set src z
+                continue
+                # set q
             case alt-j
                 test -n "$__fff_ttt" && set q (echo "$q" | "$__fff_ttt")
             case alt-l
-                test "$mode" = locate && set mode ls || set mode locate
+                # set src locate
+                test "$src" = locate && set src || set src locate
+                continue
                 # XXX: code copy
-                set -l dirname (dirname "$target")
-                if test -d "$dirname"
-                    set dir $dirname
-                end
+                # set -l dirname (dirname "$target")
+                # if test -d "$dirname"
+                #     set dir $dirname
+                # end
                 #
             case '*'
                 break
@@ -258,3 +251,17 @@ function __fff
     end
     commandline -f repaint
 end
+
+###
+
+function __fff__source
+    set me (realpath (status --current-filename))
+    echo source $me
+    source $me
+    #
+    set -e __fff_usage __fff_ls __fff_ls_F __fff_fd __fff_find __fff_pager __fff_editor __fff_ttt
+    #
+    commandline -f repaint
+end
+
+bind \es __fff__source
