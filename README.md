@@ -23,7 +23,7 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 | `C-v`    | Edit file                                  |
 | `C-x`    | Find path with `locate`                    |
 | `C-z`    | Jump around with `z`                       |
-| `M-t`    | Toggle preview                             |
+| `C-_`    | Toggle preview                             |
 
 ## Requirements
 

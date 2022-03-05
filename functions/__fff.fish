@@ -15,7 +15,7 @@ Keybind:
     C-v       Edit file
     C-x       Find path with locate
     C-z       Jump around with z
-    M-t       Toggle preview
+    C-_       Toggle preview
 "
     end
 end
@@ -139,11 +139,12 @@ function __fff
         if test "$src" = locate
             set cmd locate -i -- (string split -- ' ' $q)[1]
             set prompt "LOCATE > "
+            set fzf_opts --preview-window hidden
         else if test "$src" = z
             set cmd z --list
             set filter sed 's/^[0-9,.]* *//'
             set prompt "Z > "
-            set fzf_opts --no-sort
+            set fzf_opts --no-sort --preview-window hidden
         end
         $cmd | $filter |
         fzf --ansi \
@@ -151,7 +152,7 @@ function __fff
             --bind "ctrl-k:kill-line" \
             --bind "ctrl-l:execute-silent(test -d {} && $__fff_ls -l $ls_opts -- {} | less -R >/dev/tty || $__fff_pager -- {} </dev/tty >/dev/tty)+clear-screen" \
             --bind "ctrl-v:execute($__fff_editor -- {} </dev/tty >/dev/tty)+refresh-preview" \
-            --bind "alt-t:toggle-preview" \
+            --bind "ctrl-_:toggle-preview" \
             --expect=ctrl-g,ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
             --expect=alt-j \
             $fzf_opts \
