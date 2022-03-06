@@ -50,7 +50,10 @@ function __fff_set_fd
         else if which fd >/dev/null 2>&1
             set -gx __fff_fd fd --color=always --follow --no-ignore
         else
-            set -gx __fff_find find .
+            # set -gx __fff_find find .
+            set -gx __fff_find find -L .
+            set -gx __fff_find_filter perl -ne '{chomp; next if m:/\.:; s:^\./::; next if /^\.$/; $_ .= "/" if $_ ne "/" && -d $_; print "$_\n";}'
+            set -gx __fff_ls_filter perl -ne '{chomp; next if m:/\.:; $_ .= "/" if $_ ne "/" && -d $_; print "$_\n";}'
         end
     end
 end
@@ -98,13 +101,6 @@ function __fff
     __fff_set_editor
     __fff_set_ttt
 
-    if test -z "$__fff_fd" # -o "$__fff_pager" = "less -R"
-        # __fff_lite
-        # return
-        echo "fd: not found" >/dev/tty
-        exit 1
-    end
-
     set -l CLICOLOR_FORCE 1
 
     set -l src
@@ -126,14 +122,16 @@ function __fff
 
     while set out (
         test -d "$dir" && builtin cd -- $dir
+        set filter cat
         if test "$mode" = ls
             set cmd $__fff_ls $ls_opts
+            test -z "$__fff_fd" && set filter $__fff_ls_filter
         else if test -n "$__fff_fd"
             set cmd $__fff_fd $fd_opts
         else
             set cmd $__fff_find
+            set filter $__fff_find_filter
         end
-        set filter cat
         set prompt (string replace -a -r -- '(\.?[^/])[^/]*/' '$1/' (string replace -r -- '^'"$HOME"'($|/)' '~$1' $dir))" > "
         set fzf_opts --multi
         if test "$src" = locate
@@ -142,7 +140,8 @@ function __fff
             set fzf_opts --preview-window hidden
         else if test "$src" = z
             set cmd z --list
-            set filter sed 's/^[0-9,.]* *//'
+            # set filter sed 's/^[0-9,.]* *//'
+            set filter sed -e 's/^[0-9,.]* *//' -e 's:$:/:' # XXX: ディレクトリの末尾に '/' を追加: 余計なおせっかいか?
             set prompt "Z > "
             set fzf_opts --no-sort --preview-window hidden
         end
@@ -164,6 +163,9 @@ function __fff
         set k   (echo "$out" | sed -n 2p)
         set res (echo "$out" | sed -n '3,$p')
         test "$dir" = . && set target $res || set target (string trim -r -c / -- $dir)"/"$res
+        set res (string trim -r -c / -- $res)
+        set dir (string trim -r -c / -- $dir)
+        set target (string trim -r -c / -- $target)
         test "$src" = locate -o "$src" = z && set target $res
         switch $k
             case ctrl-j
@@ -211,9 +213,11 @@ function __fff
                 if test -n "$all"
                     set ls_opts -a
                     set fd_opts --hidden
+                    set __fff_find_filter perl -ne '{chomp; s:^\./::; next if /^\.$/; $_ .= "/" if $_ ne "/" && -d $_; print "$_\n";}'
                 else
                     set ls_opts
                     set fd_opts
+                    set __fff_find_filter perl -ne '{chomp; next if m:/\.:; s:^\./::; next if /^\.$/; $_ .= "/" if $_ ne "/" && -d $_; print "$_\n";}'
                 end
             case ctrl-t
                 set src
@@ -239,14 +243,11 @@ function __fff
                 commandline -rt -- ""
                 break
             case ctrl-z
-                # set src z
                 test "$src" = z && set src || set src z
                 continue
-                # set q
             case alt-j
                 test -n "$__fff_ttt" && set q (echo "$q" | $__fff_ttt)
             case ctrl-x
-                # set src locate
                 test "$src" = locate && set src || set src locate
                 continue
             case '*'
