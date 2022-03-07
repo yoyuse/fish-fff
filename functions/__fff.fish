@@ -45,10 +45,13 @@ end
 
 function __fff_set_fd
     if test -z "$__fff_fd" -a -z "$__fff_find"
-        if which fdfind >/dev/null 2>&1
-            set -gx __fff_fd fdfind --color=always --follow --no-ignore
-        else if which fd >/dev/null 2>&1
-            set -gx __fff_fd fd --color=always --follow --no-ignore
+        which fd >/dev/null 2>&1 && set -l _fd fd
+        which fdfind >/dev/null 2>&1 && set -l _fd fdfind
+        if test -n "$_fd"
+            if $_fd --max-depth 0 --strip-cwd-prefix >/dev/null 2>&1
+                set _fd $_fd --strip-cwd-prefix
+            end
+            set -gx __fff_fd $_fd --color=always --follow --no-ignore
         else
             # set -gx __fff_find find .
             set -gx __fff_find find -L .
