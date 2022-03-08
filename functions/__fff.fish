@@ -20,9 +20,20 @@ Keybind:
     end
 end
 
+function __fff_set_fzf
+    if test -z "$__fff_fzf"
+        for fzf in fzf sk
+            if type -q $fzf
+                set -gx __fff_fzf $fzf
+                break
+            end
+        end
+    end
+end
+
 function __fff_set_ls
     if test -z "$__fff_ls"
-        which gls >/dev/null 2>&1 && set __fff_ls gls || set __fff_ls ls
+        type -q gls && set __fff_ls gls || set __fff_ls ls
         for opt in --color=always -G --color -F
             if test "$opt" = -F
                 set __fff_ls $__fff_ls
@@ -45,8 +56,8 @@ end
 
 function __fff_set_fd
     if test -z "$__fff_fd" -a -z "$__fff_find"
-        which fd >/dev/null 2>&1 && set -l _fd fd
-        which fdfind >/dev/null 2>&1 && set -l _fd fdfind
+        type -q fd && set -l _fd fd
+        type -q fdfind && set -l _fd fdfind
         if test -n "$_fd"
             if $_fd --max-depth 0 --strip-cwd-prefix >/dev/null 2>&1
                 set _fd $_fd --strip-cwd-prefix
@@ -63,9 +74,9 @@ end
 
 function __fff_set_pager
     if test -z "$__fff_pager"
-        if which batcat >/dev/null 2>&1
+        if type -q batcat
             set -gx __fff_pager batcat -p --color=always --paging=always
-        else if which bat >/dev/null 2>&1
+        else if type -q bat
             set -gx __fff_pager bat -p --color=always --paging=always
         else
             set -gx __fff_pager less -R
@@ -75,9 +86,9 @@ end
 
 function __fff_set_editor
     if test -z "$__fff_editor"
-        if which nvim >/dev/null 2>&1
+        if type -q nvim
             set -gx __fff_editor nvim
-        else if which vim >/dev/null 2>&1
+        else if type -q vim
             set -gx __fff_editor vim
         else
             set -gx __fff_editor vi
@@ -88,7 +99,7 @@ end
 function __fff_set_ttt
     if test -z "$__fff_ttt"
         for _ttt in go-ttt cli-ttt cli-ttt.rb
-            if which $_ttt >/dev/null 2>&1
+            if type -q $_ttt
                 set -gx __fff_ttt $_ttt
                 break
             end
@@ -98,6 +109,7 @@ end
 
 function __fff
     __fff_set_usage
+    __fff_set_fzf
     __fff_set_ls
     __fff_set_fd
     __fff_set_pager
@@ -149,10 +161,11 @@ function __fff
             set fzf_opts --no-sort --preview-window hidden
         end
         $cmd | $filter |
-        fzf --ansi \
+        $__fff_fzf --ansi \
             --bind "?:execute(echo -n '$__fff_usage' | less >/dev/tty)+clear-screen" \
             --bind "ctrl-k:kill-line" \
             --bind "ctrl-l:execute(test -d {} && $__fff_ls -l $ls_opts -- {} | less -R >/dev/tty || $__fff_pager -- {} </dev/tty >/dev/tty)+clear-screen" \
+            --bind "ctrl-q:abort" \
             --bind "ctrl-v:execute($__fff_editor -- {} </dev/tty >/dev/tty)+refresh-preview" \
             --bind "ctrl-_:toggle-preview" \
             --expect=ctrl-g,ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
