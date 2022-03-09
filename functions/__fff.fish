@@ -116,7 +116,7 @@ function __fff
     __fff_set_editor
     __fff_set_ttt
 
-    set -l CLICOLOR_FORCE 1
+    # set -x CLICOLOR_FORCE 1
 
     set -l src
     set -l mode ls
@@ -135,7 +135,7 @@ function __fff
     set -l prompt
     set -l fzf_opts
 
-    while set out (
+    while true
         test -d "$dir" && builtin cd -- $dir
         set filter cat
         if test "$mode" = ls
@@ -160,7 +160,7 @@ function __fff
             set prompt "Z > "
             set fzf_opts --no-sort --preview-window hidden
         end
-        $cmd | $filter |
+        set out ($cmd | $filter |
         $__fff_fzf --ansi \
             --bind "?:execute(echo -n '$__fff_usage' | less >/dev/tty)+clear-screen" \
             --bind "ctrl-k:kill-line" \
@@ -172,9 +172,11 @@ function __fff
             --expect=alt-j \
             $fzf_opts \
             --preview "test -d {} && $__fff_ls_F $ls_opts -- {} || $__fff_pager -- {}" \
+            --print-query \
             --prompt $prompt \
-            --query=$q --print-query
-        builtin cd -- $startdir); test -n "$q" -o -n "$out"
+            --query=$q)
+        builtin cd -- $startdir
+        test -z "$q" -a -z "$out" && break
         set q   $out[1]
         set k   $out[2]
         set res $out[3..]
