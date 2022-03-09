@@ -167,10 +167,13 @@ function __fff
             --bind "ctrl-l:execute(test -d {} && $__fff_ls -l $ls_opts -- {} | less -R >/dev/tty || $__fff_pager -- {} </dev/tty >/dev/tty)+clear-screen" \
             --bind "ctrl-q:abort" \
             --bind "ctrl-v:execute($__fff_editor -- {} </dev/tty >/dev/tty)+refresh-preview" \
+            --bind "ctrl-w:backward-kill-word" \
             --bind "ctrl-_:toggle-preview" \
             --expect=ctrl-g,ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
             --expect=alt-j \
+            --filepath-word \
             $fzf_opts \
+            --keep-right \
             --preview "test -d {} && $__fff_ls_F $ls_opts -- {} || $__fff_pager -- {}" \
             --print-query \
             --prompt $prompt \
