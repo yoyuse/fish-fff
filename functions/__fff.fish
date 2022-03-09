@@ -173,11 +173,11 @@ function __fff
             $fzf_opts \
             --preview "test -d {} && $__fff_ls_F $ls_opts -- {} || $__fff_pager -- {}" \
             --prompt $prompt \
-            --query=$q --print-query \
-            | string collect; builtin cd -- $startdir); test -n "$q" -o -n "$out"
-        set q   (echo "$out" | sed -n 1p)
-        set k   (echo "$out" | sed -n 2p)
-        set res (echo "$out" | sed -n '3,$p')
+            --query=$q --print-query
+        builtin cd -- $startdir); test -n "$q" -o -n "$out"
+        set q   $out[1]
+        set k   $out[2]
+        set res $out[3..]
         test "$dir" = . && set target $res || set target (string trim -r -c / -- $dir)"/"$res
         set res (string trim -r -c / -- $res)
         set dir (string trim -r -c / -- $dir)
