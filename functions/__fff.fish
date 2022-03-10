@@ -73,13 +73,16 @@ function __fff_set_fd
 end
 
 function __fff_set_pager
-    if test -z "$__fff_pager"
+    if test -z "$__fff_pager" -o -z "$__fff_bat"
         if type -q batcat
             set -gx __fff_pager batcat -p --color=always --paging=always
+            set -gx __fff_bat batcat -p --color=always --paging=always
         else if type -q bat
             set -gx __fff_pager bat -p --color=always --paging=always
+            set -gx __fff_bat bat --color=always --plain
         else
             set -gx __fff_pager less -R
+            set -gx __fff_bat cat
         end
     end
 end
@@ -117,10 +120,17 @@ function __fff
     __fff_set_ttt
 
     # set -x CLICOLOR_FORCE 1
+    set -l less_opts -iMR
+    switch $SHELL
+        case '*fish'
+            set -x LESSOPEN '|set t %s; test -d $t && '"$__fff_ls"' -l $ls_opts -- $t || '"$__fff_bat"' -- $t'
+        case '*'
+            set -x LESSOPEN '|t=%s; test -d $t && '"$__fff_ls"' -l $ls_opts -- $t || '"$__fff_bat"' -- $t'
+    end
 
     set -l src
     set -l mode ls
-    set -l ls_opts
+    set -lx ls_opts -1 # XXX: 空の値であってはならない (LESSOPEN との兼ね合い)
     set -l fd_opts
 
     set -l startdir (pwd -L)
@@ -164,7 +174,7 @@ function __fff
         $__fff_fzf --ansi \
             --bind "?:execute(echo -n '$__fff_usage' | less >/dev/tty)+clear-screen" \
             --bind "ctrl-k:kill-line" \
-            --bind "ctrl-l:execute(test -d {} && $__fff_ls -l $ls_opts -- {} | less -R >/dev/tty || $__fff_pager -- {} </dev/tty >/dev/tty)+clear-screen" \
+            --bind "ctrl-l:execute(less $less_opts -- {} </dev/tty >/dev/tty)+clear-screen" \
             --bind "ctrl-q:abort" \
             --bind "ctrl-v:execute($__fff_editor -- {} </dev/tty >/dev/tty)+refresh-preview" \
             --bind "ctrl-w:backward-kill-word" \
@@ -232,11 +242,11 @@ function __fff
                 set src
                 test -n "$all" && set all || set all 1
                 if test -n "$all"
-                    set ls_opts -a
+                    set ls_opts -1a
                     set fd_opts --hidden
                     set __fff_find_filter perl -ne '{chomp; s:^\./::; next if /^\.$/; $_ .= "/" if $_ ne "/" && -d $_; print "$_\n";}'
                 else
-                    set ls_opts
+                    set ls_opts -1
                     set fd_opts
                     set __fff_find_filter perl -ne '{chomp; next if m:/\.:; s:^\./::; next if /^\.$/; $_ .= "/" if $_ ne "/" && -d $_; print "$_\n";}'
                 end
