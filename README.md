@@ -27,9 +27,9 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 
 ## Requirements
 
-- [junegunn/fzf](https://github.com/junegunn/fzf)
+- [junegunn/fzf](https://github.com/junegunn/fzf) or [lotabout/skim](https://github.com/lotabout/skim)
 - color `ls` (GNU ls or BSD ls)
-- [sharkdp/bat](https://github.com/sharkdp/bat) or `less`
+- [sharkdp/bat](https://github.com/sharkdp/bat) and `less`
 - [sharkdp/fd](https://github.com/sharkdp/fd) or `find`
 - `locate`
 - [jethrokuan/z](https://github.com/jethrokuan/z)
