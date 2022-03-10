@@ -1,4 +1,5 @@
-function __fff_set_usage
+function __fff
+    # __fff_usage
     if test -z "$__fff_usage"
         set -gx __fff_usage "\
 Keybind:
@@ -18,9 +19,8 @@ Keybind:
     C-_       Toggle preview
 "
     end
-end
 
-function __fff_set_fzf
+    # __fff_fzf
     if test -z "$__fff_fzf"
         for fzf in fzf sk
             if type -q $fzf
@@ -29,9 +29,8 @@ function __fff_set_fzf
             end
         end
     end
-end
 
-function __fff_set_ls
+    # __fff_ls, __fff_ls_F
     if test -z "$__fff_ls"
         type -q gls && set __fff_ls gls || set __fff_ls ls
         for opt in --color=always -G --color -F
@@ -52,9 +51,8 @@ function __fff_set_ls
     if test -z "$__fff_ls_F"
         set -gx __fff_ls_F $__fff_ls -F
     end
-end
 
-function __fff_set_fd
+    # __fff_fd, __fff_find
     if test -z "$__fff_fd" -a -z "$__fff_find"
         type -q fd && set -l _fd fd
         type -q fdfind && set -l _fd fdfind
@@ -70,9 +68,8 @@ function __fff_set_fd
             set -gx __fff_ls_filter perl -ne '{chomp; next if m:/\.:; $_ .= "/" if $_ ne "/" && -d $_; print "$_\n";}'
         end
     end
-end
 
-function __fff_set_pager
+    # __fff_pager, __fff_bat
     if test -z "$__fff_pager" -o -z "$__fff_bat"
         if type -q batcat
             set -gx __fff_pager batcat -p --color=always --paging=always
@@ -85,9 +82,8 @@ function __fff_set_pager
             set -gx __fff_bat cat
         end
     end
-end
 
-function __fff_set_editor
+    # __fff_editor
     if test -z "$__fff_editor"
         if type -q nvim
             set -gx __fff_editor nvim
@@ -97,9 +93,8 @@ function __fff_set_editor
             set -gx __fff_editor vi
         end
     end
-end
 
-function __fff_set_ttt
+    # __fff_ttt
     if test -z "$__fff_ttt"
         for _ttt in go-ttt cli-ttt cli-ttt.rb
             if type -q $_ttt
@@ -108,18 +103,8 @@ function __fff_set_ttt
             end
         end
     end
-end
 
-function __fff
-    __fff_set_usage
-    __fff_set_fzf
-    __fff_set_ls
-    __fff_set_fd
-    __fff_set_pager
-    __fff_set_editor
-    __fff_set_ttt
-
-    # set -x CLICOLOR_FORCE 1
+    # LESSOPEN
     set -l less_opts -iMR
     switch $SHELL
         case '*fish'
