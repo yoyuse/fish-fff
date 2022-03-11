@@ -178,7 +178,7 @@ Keybind:
         test -z "$q" -a -z "$out" && break
         set q   $out[1]
         set k   $out[2]
-        set res $out[3..]
+        set res $out[3..-1]
         test "$dir" = . && set target $res || set target (string trim -r -c / -- $dir)"/"$res
         set res (string trim -r -c / -- $res)
         set dir (string trim -r -c / -- $dir)
