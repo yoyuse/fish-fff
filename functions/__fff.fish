@@ -145,13 +145,14 @@ Keybind:
         set prompt (string replace -a -r -- '(\.?[^/])[^/]*/' '$1/' (string replace -r -- '^'"$HOME"'($|/)' '~$1' $dir))" > "
         set fzf_opts --multi
         if test "$src" = locate
-            set cmd locate -i -- (string split -- ' ' $q)[1]
+            # set cmd locate -i -- (string split -- ' ' $q)[1]
+            set cmd locate /
             set prompt "LOCATE > "
             set fzf_opts --preview-window hidden
         else if test "$src" = z
             set cmd z --list
-            # set filter sed 's/^[0-9,.]* *//'
-            set filter sed -e 's/^[0-9,.]* *//' -e 's:$:/:' # XXX: ディレクトリの末尾に '/' を追加: 余計なおせっかいか?
+            set filter sed 's/^[0-9,.]* *//'
+            # set filter sed -e 's/^[0-9,.]* *//' -e 's:$:/:' # XXX: ディレクトリの末尾に '/' を追加: 余計なおせっかいか?
             set prompt "Z > "
             set fzf_opts --no-sort --preview-window hidden
         end
