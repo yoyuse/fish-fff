@@ -201,7 +201,7 @@ Keybind:
             case ctrl-o
                 if test "$src" = locate -o "$src" = z
                     set src
-                    set dir (dirname $target)
+                    test -n "$target" && set dir (dirname $target)
                     set q
                     continue
                 end
@@ -250,8 +250,10 @@ Keybind:
             case ctrl-g
                 if test "$src" = locate -o "$src" = z
                     set src
-                    set dir $target
-                    test -d "$dir" || set dir (dirname $target)
+                    if test -n "$target"
+                        set dir $target
+                        test -d "$dir" || set dir (dirname $target)
+                    end
                     set q
                     continue
                 end
