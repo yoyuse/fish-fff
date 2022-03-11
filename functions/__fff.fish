@@ -160,7 +160,7 @@ Keybind:
         $__fff_fzf --ansi \
             --bind "?:execute(echo -n '$__fff_usage' | less >/dev/tty)+clear-screen" \
             --bind "ctrl-k:kill-line" \
-            --bind "ctrl-l:execute(less $less_opts -- {} </dev/tty >/dev/tty)+clear-screen" \
+            --bind "ctrl-l:execute(less $less_opts -- {} </dev/tty >/dev/tty)+refresh-preview" \
             --bind "ctrl-q:abort" \
             --bind "ctrl-v:execute($__fff_editor -- {} </dev/tty >/dev/tty)+refresh-preview" \
             --bind "ctrl-w:backward-kill-word" \
