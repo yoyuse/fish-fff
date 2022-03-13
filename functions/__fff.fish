@@ -17,6 +17,8 @@ Keybind:
     C-x       Find path with locate
     C-z       Jump around with z
     C-_       Toggle preview
+    A-H       Go to \$HOME directory
+    A-S       Go to start directory
 "
     end
 
@@ -166,6 +168,7 @@ Keybind:
             --bind "ctrl-w:backward-kill-word" \
             --bind "ctrl-_:toggle-preview" \
             --expect=ctrl-g,ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
+            --expect=alt-H,alt-S \
             --expect=alt-j \
             --filepath-word \
             $fzf_opts \
@@ -269,6 +272,15 @@ Keybind:
             case ctrl-x
                 test "$src" = locate && set src || set src locate
                 continue
+            case alt-H
+                set src
+                set dir $HOME
+                test "$dir" = "$startdir" && set dir .
+                set q
+            case alt-S
+                set src
+                set dir .
+                set q
             case '*'
                 break
         end
