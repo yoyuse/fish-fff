@@ -74,10 +74,10 @@ Keybind:
     # __fff_pager, __fff_bat
     if test -z "$__fff_pager" -o -z "$__fff_bat"
         if type -q batcat
-            set -gx __fff_pager batcat -p --color=always --paging=always
-            set -gx __fff_bat batcat -p --color=always --paging=always
+            set -gx __fff_pager batcat --color=always --plain --paging=always
+            set -gx __fff_bat batcat --color=always --plain
         else if type -q bat
-            set -gx __fff_pager bat -p --color=always --paging=always
+            set -gx __fff_pager bat --color=always --plain --paging=always
             set -gx __fff_bat bat --color=always --plain
         else
             set -gx __fff_pager less -R
