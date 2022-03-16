@@ -16,7 +16,7 @@ Keybind:
     C-v       Edit file
     C-x       Find path with locate
     C-z       Jump around with z
-    C-_       Toggle preview
+    C-SPC     Toggle preview
     A-H       Go to \$HOME directory
     A-S       Go to start directory
 "
@@ -163,7 +163,7 @@ Keybind:
             --bind "ctrl-q:abort" \
             --bind "ctrl-v:execute($__fff_editor -- {} </dev/tty >/dev/tty)+refresh-preview" \
             --bind "ctrl-w:backward-kill-word" \
-            --bind "ctrl-_:toggle-preview" \
+            --bind "ctrl-space:toggle-preview" \
             --expect=ctrl-g,ctrl-j,ctrl-m,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x,ctrl-z \
             --expect=alt-H,alt-S \
             --expect=alt-j \
