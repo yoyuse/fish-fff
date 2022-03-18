@@ -4,7 +4,7 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 
 ## Usage
 
-`C-s` - invoke fish-fff
+`C-s` - Invoke fish-fff
 
 ### Keybind
 
@@ -23,7 +23,9 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 | `C-v`    | Edit file                                  |
 | `C-x`    | Find path with `locate`                    |
 | `C-z`    | Jump around with `z`                       |
-| `C-_`    | Toggle preview                             |
+| `C-SPC`  | Toggle preview                             |
+| `A-H`    | `$HOME` directory                          |
+| `A-I`    | Initial directory                          |
 
 ## Requirements
 
