@@ -105,6 +105,9 @@ Keybind:
         end
     end
 
+    # CLICOLOR_FORCE
+    set -lx CLICOLOR_FORCE 1
+
     # LESSOPEN
     set -l less_opts -iMR
     switch $SHELL
