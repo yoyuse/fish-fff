@@ -133,6 +133,10 @@ Keybind:
     set -l filter
     set -l prompt
     set -l fzf_opts
+    # preserve dir
+    set -l prev_dir
+    set -l row
+    # /preserve dir
 
     while true
         test -d "$dir" && builtin cd -- $dir
@@ -148,6 +152,12 @@ Keybind:
         end
         set prompt (string replace -a -r -- '(\.?[^/])[^/]*/' '$1/' (string replace -r -- '^'"$HOME"'($|/)' '~$1' $dir))" > "
         set fzf_opts --multi
+        # preserve dir
+        # pos(...) requires fzf >= 0.36.0
+        if test -n "$row"
+            set fzf_opts $fzf_opts --sync --bind "start:pos($row)"
+        end
+        # /preserve dir
         if test "$src" = locate
             set cmd locate /
             set prompt "LOCATE > "
@@ -193,6 +203,7 @@ Keybind:
                 break
             case ctrl-m
                 set src
+                set row         # give up preserve dir
                 if test -d "$target"
                     set dir $target
                     test "$dir" = "$startdir" && set dir .
@@ -204,12 +215,16 @@ Keybind:
             case ctrl-o
                 if test "$src" = locate -o "$src" = z
                     set src
+                    set row     # give up preserve dir
                     test -n "$target" && set dir (dirname $target)
                     set q
                     continue
                 end
                 set src
                 test "$dir" = . -o "$dir" = "" && set dir (pwd)
+                # preserve dir
+                set prev_dir (basename $dir)
+                # /preserve dir
                 set -l parent (string replace -r -- '/[^/]+$' '' $dir)
                 switch $parent
                     case ""
@@ -220,8 +235,19 @@ Keybind:
                         set dir $parent
                 end
                 set q
+                # preserve dir
+                if test "$mode" = ls
+                    # /bin/ls $ls_opts --color=never $dir | cat -nv 1>&2
+                    # echo $prev_dir | cat -v 1>&2
+                    set row ($__fff_ls $ls_opts --color=never $dir | awk '{i++; if ("'"$prev_dir"'" == $0) {print i;}}')
+                    # echo $row 1>&2
+                else
+                    set row     # give up preserve dir
+                end
+                # /preserve dir
             case ctrl-r
                 set src
+                set row         # give up preserve dir
                 test "$mode" = ls && set mode fd || set mode ls
                 if test -n "$target"
                     set -l dirname (dirname $target)
@@ -230,6 +256,7 @@ Keybind:
             case ctrl-s
                 set src
                 test -n "$all" && set all || set all 1
+                # set row         # give up preserve dir
                 if test -n "$all"
                     set ls_opts -1a
                     set fd_opts --hidden
@@ -253,6 +280,7 @@ Keybind:
             case ctrl-g
                 if test "$src" = locate -o "$src" = z
                     set src
+                    set row         # give up preserve dir
                     if test -n "$target"
                         set dir $target
                         test -d "$dir" || set dir (dirname $target)
@@ -274,11 +302,13 @@ Keybind:
                 continue
             case alt-H
                 set src
+                set row         # give up preserve dir
                 set dir $HOME
                 test "$dir" = "$startdir" && set dir .
                 set q
             case alt-I
                 set src
+                set row         # give up preserve dir
                 set dir .
                 set q
             case '*'
