@@ -112,9 +112,11 @@ Keybind:
     set -l less_opts -iMR
     switch $SHELL
         case '*fish'
-            set -x LESSOPEN '|set t %s; test -d $t && '"$__fff_ls"' -l $ls_opts -- $t || '"$__fff_bat"' -- $t'
+            # set -x LESSOPEN '|set t %s; test -d $t && '"$__fff_ls"' -l $ls_opts -- $t || '"$__fff_bat"' -- $t'
+            set -x LESSOPEN '|set t %s; test -d $t && begin; '"$__fff_ls"' -dl $ls_opts -- $t; '"$__fff_ls"' -l $ls_opts -- $t; end || '"$__fff_bat"' -- $t'
         case '*'
-            set -x LESSOPEN '|t=%s; test -d $t && '"$__fff_ls"' -l $ls_opts -- $t || '"$__fff_bat"' -- $t'
+            # set -x LESSOPEN '|t=%s; test -d $t && '"$__fff_ls"' -l $ls_opts -- $t || '"$__fff_bat"' -- $t'
+            set -x LESSOPEN '|t=%s; test -d $t && ('"$__fff_ls"' -dl $ls_opts -- $t; '"$__fff_ls"' -l $ls_opts -- $t) || '"$__fff_bat"' -- $t'
     end
 
     set -l src
