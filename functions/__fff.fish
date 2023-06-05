@@ -6,6 +6,7 @@ Keybind:
     ?         Show help
     Return    Print file path and exit / Enter directory
     C-g       Exit with CWD
+    C-h, BS   Parent directory (if query is empty)
     C-j       Print path and exit
     C-l       View file
     C-o       Parent directory
@@ -20,6 +21,11 @@ Keybind:
     A-H       \$HOME directory
     A-I       Initial directory
 "
+    end
+
+    # __fff_color_pl
+    if test -z "$__fff_color_pl"
+        set -gx __fff_color_pl 'if (-d s!\n!!r) {s!.*!\033[34m$&\033[m!;} else {s!.*/!\033[34m$&\033[m!;}'
     end
 
     # __fff_fzf
@@ -139,6 +145,8 @@ Keybind:
     set -l prev_dir
     set -l row
     # /preserve dir
+    set -l tmp (mktemp /tmp/fff.XXXXXXXXXX)
+    rm -f $tmp                  # XXX: unsafe
 
     while true
         test -d "$dir" && builtin cd -- $dir
@@ -160,19 +168,25 @@ Keybind:
             set fzf_opts $fzf_opts --sync --bind "start:pos($row)"
         end
         # /preserve dir
+        set color cat
         if test "$src" = locate
             set cmd locate /
             set prompt "LOCATE > "
             set fzf_opts --preview-window hidden
+            set color perl -pe $__fff_color_pl
         else if test "$src" = z
             set cmd z --list
             set filter sed 's/^[0-9,.]* *//'
             set prompt "Z > "
             set fzf_opts --no-sort --preview-window hidden
+            set color perl -pe $__fff_color_pl
         end
-        set out ($cmd | $filter |
+        rm -f $tmp
+        set out ($cmd | $filter | $color |
         $__fff_fzf --ansi \
             --bind "?:execute(echo -n '$__fff_usage' | less >/dev/tty)+clear-screen" \
+            --bind "ctrl-h:execute-silent(test -z {q} && echo {} > $tmp)+backward-delete-char/eof" \
+            --bind "bspace:execute-silent(test -z {q} && echo {} > $tmp)+backward-delete-char/eof" \
             --bind "ctrl-k:kill-line" \
             --bind "ctrl-l:execute(less $less_opts -- {} </dev/tty >/dev/tty)+refresh-preview" \
             --bind "ctrl-q:abort" \
@@ -188,7 +202,8 @@ Keybind:
             --preview "test -d {} && $__fff_ls_F $ls_opts -- {} || $__fff_pager -- {}" \
             --print-query \
             --prompt $prompt \
-            --query=$q)
+            --query=$q
+        or begin test -f $tmp && begin echo; echo ctrl-h; cat $tmp; end; end)
         builtin cd -- $startdir
         test -z "$q" -a -z "$out" && break
         set q   $out[1]
@@ -214,7 +229,7 @@ Keybind:
                     commandline -rt -- (string join -- ' ' (string escape -- $target))
                     break
                 end
-            case ctrl-o
+            case ctrl-h ctrl-o
                 if test "$src" = locate -o "$src" = z
                     set src
                     set row     # give up preserve dir

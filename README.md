@@ -8,24 +8,25 @@ Command-line Fuzzy File Finder for [Fish](https://fishshell.com/), inspired by [
 
 ### Keybind
 
-| Key      | Action                                     |
-|----------|--------------------------------------------|
-| `?`      | Show help                                  |
-| `Return` | Print file path and exit / Enter directory |
-| `C-g`    | Exit with CWD                              |
-| `C-j`    | Print path and exit                        |
-| `C-l`    | View file                                  |
-| `C-o`    | Parent directory                           |
-| `C-q`    | Exit                                       |
-| `C-r`    | Toggle recursive search                    |
-| `C-s`    | Toggle invisibles                          |
-| `C-t`    | Toggle absolute path                       |
-| `C-v`    | Edit file                                  |
-| `C-x`    | Find path with `locate`                    |
-| `C-z`    | Jump around with `z`                       |
-| `C-SPC`  | Toggle preview                             |
-| `A-H`    | `$HOME` directory                          |
-| `A-I`    | Initial directory                          |
+| Key        | Action                                     |
+|------------|--------------------------------------------|
+| `?`        | Show help                                  |
+| `Return`   | Print file path and exit / Enter directory |
+| `C-g`      | Exit with CWD                              |
+| `C-h`/`BS` | Parent directory (if query is empty)       |
+| `C-j`      | Print path and exit                        |
+| `C-l`      | View file                                  |
+| `C-o`      | Parent directory                           |
+| `C-q`      | Exit                                       |
+| `C-r`      | Toggle recursive search                    |
+| `C-s`      | Toggle invisibles                          |
+| `C-t`      | Toggle absolute path                       |
+| `C-v`      | Edit file                                  |
+| `C-x`      | Find path with `locate`                    |
+| `C-z`      | Jump around with `z`                       |
+| `C-SPC`    | Toggle preview                             |
+| `A-H`      | `$HOME` directory                          |
+| `A-I`      | Initial directory                          |
 
 ## Requirements
 
